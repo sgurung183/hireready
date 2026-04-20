@@ -5,32 +5,33 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import jakarta.persistence.Id;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
-@Entity //tells JPA this class maps to a database table
-@Table(name = "users") //name the table
+@Entity
+@Table(name = "users")
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
-    //mark the primary key and tell JPA to auto increment
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)//field is required in the database
+    @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false, unique = true)//field needs to be unique
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
-    @Enumerated(EnumType.STRING)//stores the enum as a text in the database rather than a number
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VisaStatus visaStatus;
 
@@ -41,7 +42,12 @@ public class User {
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @PrePersist //runs onCreate() method automaticallt right before a new record i saved
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Resume> resumeList = new ArrayList<>();
+
+    //on each creation of a user this function is evoked because of the @prepersist annotaion
+    @PrePersist
     void onCreate(){
         createdAt = LocalDateTime.now();
     }

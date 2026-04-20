@@ -1,0 +1,30 @@
+# The version of the docker-compose API we are using
+version: '3.8'
+
+services:
+  # This is the name of our service inside Docker
+  postgres-db:
+    # Use the lightweight Alpine Linux version of Postgres 15
+    image: postgres:15-alpine
+    # The name of the container as it will appear in Docker Desktop
+    container_name: hireready-db
+    environment:
+      # Automatically creates a database named 'hireready' on startup
+      - POSTGRES_DB=hireready
+      # The default superuser for Postgres
+      - POSTGRES_USER=postgres
+      # The password required to connect to the database
+      - POSTGRES_PASSWORD=password123
+    ports:
+      # Map the container's port 5432 to your computer's port 5432
+      # Format is: [HOST_PORT]:[CONTAINER_PORT]
+      - "5432:5432"
+    volumes:
+      # Mounts the 'postgres_data' volume so your data persists
+      # even if you delete the container
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+# Named volume to ensure our database info isn't lost when we stop the container
+volumes:
+  postgres_data:
