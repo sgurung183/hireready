@@ -49,7 +49,22 @@ The LLM integration layer should be **provider-agnostic**. Design a `LlmProvider
 
 ### Security
 
-Spring Security + JWT is declared but not yet implemented. JWT signing/validation will use JJWT (`io.jsonwebtoken`). Stateless auth: issue a JWT on login, validate it on every protected request via a `OncePerRequestFilter`.
+Spring Security + JWT. Stateless auth — no sessions, no cookies. A JWT is issued on login/register and the client attaches it to every future request via the `Authorization: Bearer <token>` header.
+
+**Files built so far (`security` package):**
+
+- **`JwtUtil`** — the JWT toolbox. Three jobs: generate a token (on login/register), extract the email from a token, validate a token. Uses JJWT 0.11.5. Secret key and expiration are read from environment variables `JWT_SECRET` and `JWT_EXPIRATION` (defaults to 24h). Never hardcoded.
+
+- **`CustomUserDetailsService`** — implements Spring Security's `UserDetailsService` interface. One method: `loadUserByUsername(email)` — hits the DB via `UserRepository` and returns the `User`. Called by `JwtFilter` to confirm the email in the token belongs to a real user.
+
+- **`JwtFilter`** — extends `OncePerRequestFilter`, runs on every request before any controller. Reads the `Authorization` header, extracts the token, validates it via `JwtUtil`, loads the user via `CustomUserDetailsService`, then stores the authenticated user in `SecurityContextHolder` so any controller can access them via `@AuthenticationPrincipal`.
+
+- **`User` implements `UserDetails`** — required so Spring Security can work directly with our `User` entity. Implements `getAuthorities()` (returns `ROLE_USER` or `ROLE_ADMIN`), `getUsername()` (returns email), and four account-state methods (all return true for now).
+
+**Token flow:**
+1. User registers or logs in → `AuthService` saves user, calls `JwtUtil.generateToken(email)` → token returned in `AuthResponse`
+2. Every future request → `JwtFilter` intercepts → validates token → sets user in `SecurityContextHolder` → controller runs
+3. Public endpoints (`/api/auth/**`) → `JwtFilter` sees no token → skips → `SecurityConfig` allows through
 
 ### Database
 
