@@ -1,11 +1,11 @@
 package com.hireready.hireready.security;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -90,7 +90,7 @@ public class JwtUtil {
     // HS256 requires at least 32 bytes — our secret is long enough to satisfy this.
     // Private because no other class should ever touch the raw signing key directly.
     private Key getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secret); // converts the base64 text back into raw bytes
-        return Keys.hmacShaKeyFor(keyBytes);              // wraps those bytes into a Key object JJWT can sign with
+        byte[] keyBytes = secret.getBytes(StandardCharsets.UTF_8);
+        return Keys.hmacShaKeyFor(keyBytes);
     }
 }

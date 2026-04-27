@@ -12,7 +12,7 @@ public interface ResumeRepository extends JpaRepository<Resume, Long> {
     List<Resume> findAllByUserId(Long userID);
 
     //find the main résumé for a specific user id
-    Optional<Resume> findByUserIdAndIsMain(Long userId);
-
+    Optional<Resume> findByUserIdAndIsMainTrue(Long userId);
+    Optional<Resume> findByIdAndUserId(Long id, Long userId);
     Optional<Resume> findByFileNameIgnoreCase(String name);
 }

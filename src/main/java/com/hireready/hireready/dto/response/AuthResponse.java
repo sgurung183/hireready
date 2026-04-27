@@ -1,11 +1,11 @@
 package com.hireready.hireready.dto.response;
 
 import com.hireready.hireready.entity.VisaStatus;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
-@AllArgsConstructor //needed for the service layer can construct it, new AuthResponse
+@Builder
 public class AuthResponse {
     private String token;
     private String fullName;

@@ -34,7 +34,7 @@ public class SecurityConfig {
             // Define which endpoints are public and which require a valid JWT.
             .authorizeHttpRequests(auth -> auth
                 // Anyone can hit login and register — no token needed yet.
-                .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/api/auth/**", "/error").permitAll()
                 // Every other endpoint requires a valid JWT token.
                 .anyRequest().authenticated()
             )
