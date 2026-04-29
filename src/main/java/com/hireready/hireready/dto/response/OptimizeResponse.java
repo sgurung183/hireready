@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class OptimizeResponse {
-    private int id;
+    private Long id;
     private String optimizedText;
     private double matchScore;
     private LocalDateTime createdAt;

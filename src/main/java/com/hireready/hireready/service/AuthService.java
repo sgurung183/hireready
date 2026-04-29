@@ -6,6 +6,8 @@ import com.hireready.hireready.dto.response.AuthResponse;
 import com.hireready.hireready.entity.Role;
 import com.hireready.hireready.entity.User;
 import com.hireready.hireready.entity.VisaStatus;
+import com.hireready.hireready.exception.InvalidCredentialsException;
+import com.hireready.hireready.exception.ResourceNotFoundException;
 import com.hireready.hireready.repository.UserRepository;
 import com.hireready.hireready.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -42,11 +44,11 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         //we match the request password and the encoded password which is saved in the db
         //in the db you do not store the raw password
         if(!passwordEncoder.matches(request.getPassword(), user.getPassword())){
-            throw new RuntimeException("Invalid Password");
+            throw new InvalidCredentialsException("Invalid Password");
         }
         String token = jwtUtil.generateToken(request.getEmail());
         return AuthResponse.builder()

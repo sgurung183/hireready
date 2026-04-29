@@ -81,6 +81,13 @@
 			<version>3.0.2</version>
 		</dependency>
 
+		<!-- Google Gemini SDK — official library by Google to call the Gemini API -->
+		<dependency>
+			<groupId>com.google.genai</groupId>
+			<artifactId>google-genai</artifactId>
+			<version>1.0.0</version>
+		</dependency>
+
 		<!-- JWT library -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

@@ -23,7 +23,6 @@ public class Resume {
 
     private String fileName;
 
-    @Lob
     @Column(columnDefinition = "TEXT", nullable = false)
     private String content;
 

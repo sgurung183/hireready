@@ -46,7 +46,7 @@ public class JwtUtil {
 
     // PURPOSE: Read the email out of a token that was sent by the frontend.
     // INPUT: the raw token string from the Authorization header
-    // OUTPUT: the email address that was embedded when the token was generated
+    // OUTPUT: the email address that was embedded when the  token was generated
     // Example: token was generated for "john@gmail.com" — this method returns "john@gmail.com"
     // JwtFilter calls this to figure out which user is making the current request.
     public String extractEmail(String token) {

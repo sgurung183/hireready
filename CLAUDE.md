@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-HireReady is a **resume optimizer** Spring Boot backend. Users upload a resume (PDF) and paste a job description; the backend sends both to an LLM (user's choice — not locked to Claude) and returns an optimized resume. The app also tracks job applications per user.
+HireReady is a **resume optimizer** Spring Boot backend. Users upload a resume (PDF) and paste a job description; the backend sends both to an LLM (user's choice — not locked to Claude) and returns an optimized resume.
 
 **Stack:** Java 21, Spring Boot 3.5, Spring Security + JWT (JJWT 0.11.5), Spring Data JPA, PostgreSQL, Lombok.
 
@@ -70,6 +70,40 @@ Spring Security + JWT. Stateless auth — no sessions, no cookies. A JWT is issu
 
 PostgreSQL 15 runs via Docker Compose (`docker-compose.yml`). Hibernate `ddl-auto=update` auto-migrates schema from entity changes — suitable for development. Connection: `localhost:5432/hireready`, user `postgres`, password `password123`.
 
-### Resume Storage Strategy (to be decided)
+### Resume Storage Strategy
 
-`Resume.content` is currently a `TEXT` column (extracted text). For PDF storage, choose between: storing the binary in a `BYTEA` column, or saving to disk/S3 and storing a path. The LLM call will need the raw text extracted from the PDF, so PDF-to-text extraction is required regardless.
+`Resume.content` stores extracted plain text (not the raw PDF binary). PDF-to-text extraction uses **Apache PDFBox** (`Loader.loadPDF` + `PDFTextStripper`) inside `ResumeService.extractFile()`. The binary PDF is not persisted — only the extracted text is saved to the DB.
+
+---
+
+## What Has Been Built
+
+### Fully implemented
+- **Entities:** `User` (implements `UserDetails`), `Resume`, `OptimizationResult`, `Role` enum, `VisaStatus` enum
+- **Repositories:** `UserRepository`, `ResumeRepository`, `OptimizationResultRepository`
+- **Security:** `JwtUtil`, `JwtFilter`, `CustomUserDetailsService`, `SecurityConfig`
+- **Auth flow:** `AuthController`, `AuthService` — register and login endpoints, both return a JWT in `AuthResponse`
+- **Resume:** `ResumeController` (`POST /api/resumes/upload`, `GET /api/resumes/{id}`, `GET /api/resumes/findAll`, `DELETE /api/resumes/{id}`), `ResumeService` (PDF extraction via PDFBox, save to DB, fetch by id+owner, list all, delete, isMain uniqueness enforced)
+- **LLM layer:** `LlmProvider` interface, `GeminiProvider` implementation (Gemini 2.5 Flash — free tier model, returns `optimizedText` + `matchScore` as JSON, strips markdown fences before parsing)
+- **Optimize:** `OptimizeService` (fetch resume → call LLM → save `OptimizationResult` → return response with DB-generated id), `OptimizeController` (`POST /api/optimize/{resumeId}`, `GET /api/optimize/{resumeId}/history`)
+- **Error handling:** `GlobalExceptionHandler` (`@RestControllerAdvice`) — `ResourceNotFoundException` → 404, `InvalidCredentialsException` → 401, `MethodArgumentNotValidException` → 400
+- **DTOs:** `RegisterRequest`, `LoginRequest`, `AuthResponse`, `OptimizeRequest`, `OptimizeResponse`, `ResumeResponse`
+
+### Runtime fixes applied during testing
+- Removed `@Lob` from `Resume.content` — PostgreSQL's `TEXT` type doesn't need LOB streaming and it caused `Unable to access lob stream` errors on reads outside a transaction
+- `GeminiProvider` uses `GOOGLE_API_KEY` env var (not `GEMINI_API_KEY`) — must be set before starting the app
+- `OptimizeService` now builds the response from the saved `OptimizationResult` entity so the DB-generated `id` is returned instead of null
+- Gemini model changed from `gemini-2.0-flash` to `gemini-2.5-flash` — 2.0 Flash is not included in the free tier
+
+## Next To-Dos
+
+### Remaining Postman tests
+1. `GET /api/resumes/findAll` — list all resumes
+2. `DELETE /api/resumes/{id}` — delete a resume, confirm it's gone
+3. `GET /api/optimize/{resumeId}/history` — verify optimization history is returned
+
+### Environment setup note
+- `GOOGLE_API_KEY` must be set as an environment variable before running the app
+- On Windows PowerShell use: `$env:GOOGLE_API_KEY = "your_key"` for the current session
+- Use `setx GOOGLE_API_KEY "your_key"` to persist permanently (requires new terminal after)
+

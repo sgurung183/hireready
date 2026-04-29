@@ -9,6 +9,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/resumes")
 @RequiredArgsConstructor
@@ -33,6 +35,24 @@ public class ResumeController {
     ){
         ResumeResponse resumeResponse = resumeService.getResume(id, currentUser);
         return ResponseEntity.ok(resumeResponse);
+    }
+
+    @GetMapping("/findAll")
+    public ResponseEntity<List<ResumeResponse>> findAllResume(
+            @AuthenticationPrincipal User currentUser
+    ){
+        return ResponseEntity.ok(
+                resumeService.getAllResume(currentUser)
+        );
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteResume(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser
+    ){
+        resumeService.deleteResume(id, currentUser);
+        return ResponseEntity.noContent().build();
     }
 }
 
