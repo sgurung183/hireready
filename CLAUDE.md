@@ -95,15 +95,22 @@ PostgreSQL 15 runs via Docker Compose (`docker-compose.yml`). Hibernate `ddl-aut
 - `OptimizeService` now builds the response from the saved `OptimizationResult` entity so the DB-generated `id` is returned instead of null
 - Gemini model changed from `gemini-2.0-flash` to `gemini-2.5-flash` — 2.0 Flash is not included in the free tier
 
+## Current Status
+
+Core feature set is complete and manually tested via Postman. The app is in a **demo/early stage** — only Gemini 2.5 Flash (free tier) is wired up as the LLM provider. Optimization quality reflects that constraint.
+
 ## Next To-Dos
 
-### Remaining Postman tests
-1. `GET /api/resumes/findAll` — list all resumes
-2. `DELETE /api/resumes/{id}` — delete a resume, confirm it's gone
-3. `GET /api/optimize/{resumeId}/history` — verify optimization history is returned
+### Multi-LLM integration (main focus)
+1. Add `UserLlmConfig` entity — `provider` (GEMINI/OPENAI/CLAUDE/OLLAMA), `apiKey`, `model`, one-to-one with `User`
+2. Add `UserLlmConfigRepository` and a `POST /api/user/llm-config` endpoint to let users save their config
+3. Implement `OpenAiProvider` (OpenAI Chat Completions API)
+4. Implement `ClaudeProvider` (Anthropic Messages API)
+5. Implement `OllamaProvider` (local models, no API key)
+6. Add provider factory/selector in `OptimizeService` — read user's config, instantiate the right `LlmProvider` at runtime
 
 ### Environment setup note
-- `GOOGLE_API_KEY` must be set as an environment variable before running the app
-- On Windows PowerShell use: `$env:GOOGLE_API_KEY = "your_key"` for the current session
-- Use `setx GOOGLE_API_KEY "your_key"` to persist permanently (requires new terminal after)
+- `GOOGLE_API_KEY` must be set before running the app
+- Option 1: create a `.env` file in the project root (loaded automatically via `spring-dotenv`)
+- Option 2: set in the current PowerShell session with `$env:GOOGLE_API_KEY = "your_key"`
 

@@ -8,40 +8,35 @@
 - [x] `CustomUserDetailsService` — load user from DB by email
 - [x] `JwtFilter` — intercepts every request, validates JWT, sets user in SecurityContext
 - [x] `User implements UserDetails` — Spring Security integration
+- [x] `SecurityConfig` — public vs protected endpoints, JwtFilter wired in, sessions disabled
+- [x] `AuthService` + `AuthController` — register and login, both return JWT
+- [x] Apache PDFBox — PDF upload, text extraction, save to DB
+- [x] `ResumeController` — upload, get by id, list all, delete
+- [x] `LlmProvider` interface — provider-agnostic abstraction
+- [x] `GeminiProvider` — Gemini 2.5 Flash (free tier), returns `optimizedText` + `matchScore`
+- [x] `OptimizeService` + `OptimizeController` — optimize endpoint, history endpoint
+- [x] `GlobalExceptionHandler` — 400/401/404 error responses
+- [x] README
 
 ---
 
-## In Progress — Authentication
+## Up Next — Multi-LLM Integration
 
-- [ ] `SecurityConfig` — define public vs protected endpoints, plug in `JwtFilter`, disable sessions
-- [ ] `AuthService` — register (hash password, save user, return token) + login (verify password, return token)
-- [ ] `AuthController` — `POST /api/auth/register` and `POST /api/auth/login`
-- [ ] Test auth with Postman: register → get token → use token on a protected endpoint
+The `LlmProvider` interface is already in place. The goal is to let each user bring their own API key and choose their preferred provider.
 
----
-
-## Up Next — Resume
-
-- [ ] Add Apache PDFBox dependency to `pom.xml` for PDF text extraction
-- [ ] `ResumeService` — upload PDF, extract text, save `Resume` entity, return `ResumeResponse`
-- [ ] `ResumeController` — `POST /api/resumes/upload` (multipart), `GET /api/resumes` (list user's resumes)
-
----
-
-## Up Next — Optimization
-
-- [ ] Design `LlmProvider` interface (provider-agnostic: Claude, OpenAI, Gemini)
-- [ ] Implement at least one `LlmProvider` (e.g. OpenAI or Claude)
-- [ ] `OptimizationService` — fetch resume text from DB + job description → send to LLM → save `OptimizationResult` → return `OptimizeResponse`
-- [ ] `OptimizationController` — `POST /api/optimize`, `GET /api/optimize/{id}`
+- [ ] `UserLlmConfig` entity — stores `provider` (enum: GEMINI, OPENAI, CLAUDE, OLLAMA), `apiKey`, `model` per user; one-to-one with `User`
+- [ ] `UserLlmConfigRepository` + endpoints to save/update a user's LLM config (`POST /api/user/llm-config`)
+- [ ] `OpenAiProvider` — implement `LlmProvider` using the OpenAI API
+- [ ] `ClaudeProvider` — implement `LlmProvider` using the Anthropic API
+- [ ] `OllamaProvider` — implement `LlmProvider` for local Ollama models (no API key needed)
+- [ ] Provider factory / selector in `OptimizeService` — read the user's config and instantiate the right `LlmProvider` at runtime
+- [ ] Update `OptimizeRequest` or user config to accept a preferred model name per call
 
 ---
 
 ## Later / Nice to Have
 
-- [ ] Set `JWT_SECRET` and `JWT_EXPIRATION` as real environment variables on the machine
-- [ ] Error handling — global `@ControllerAdvice` for clean error responses
-- [ ] Input validation error messages (currently Jakarta validation errors return ugly 400s)
-- [ ] Swagger/OpenAPI docs (`springdoc-openapi`) so frontend knows the API contract
+- [ ] Swagger/OpenAPI docs (`springdoc-openapi`) so a frontend knows the API contract
 - [ ] Resume "set as main" endpoint — mark one resume as the default for optimization
-- [ ] Decide on PDF storage strategy (text only vs binary BYTEA vs S3 path)
+- [ ] Input validation error messages (400 responses currently return the full Jakarta error object)
+- [ ] Store match score history and surface trends over multiple optimization runs

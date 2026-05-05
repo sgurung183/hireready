@@ -37,7 +37,17 @@
 - `Resume.content` (`TEXT` column) always holds plain text, never binary data
 
 ### Multi-LLM support
-- The LLM integration will sit behind a provider-agnostic interface (e.g., `LlmProvider`)
-- Users can configure their own API key and choose their provider (Claude, OpenAI, Gemini, Ollama, etc.)
-- A `UserLlmConfig` entity will store provider + API key + preferred model per user
-- No LLM provider is hardcoded anywhere in the core logic
+- The LLM integration sits behind a provider-agnostic `LlmProvider` interface
+- `GeminiProvider` is the only implementation so far — uses Gemini 2.5 Flash on the free tier, which limits optimization quality; this is intentional for the demo stage
+- Next step: `UserLlmConfig` entity will store provider + API key + preferred model per user so anyone can bring their own key
+- No LLM provider is hardcoded in core logic — `OptimizeService` calls `LlmProvider`, not `GeminiProvider` directly
+
+### Runtime fixes (applied during initial testing)
+- Removed `@Lob` from `Resume.content` — PostgreSQL's `TEXT` type does not use LOB streaming; keeping `@Lob` caused `Unable to access lob stream` errors on reads outside a transaction
+- `GeminiProvider` reads `GOOGLE_API_KEY` (not `GEMINI_API_KEY`) — matches the env var name Google's own tooling uses
+- `OptimizeService` builds the response from the saved entity so the DB-generated `id` is returned (was null before)
+- Gemini model changed from `gemini-2.0-flash` to `gemini-2.5-flash` — 2.0 Flash is not on the free tier
+
+### Environment variable loading
+- Added `spring-dotenv` (`me.paulschwarz:spring-dotenv:4.0.0`) so a `.env` file in the project root is loaded automatically on startup
+- Without this, Spring Boot ignores `.env` files entirely and only reads system env vars
