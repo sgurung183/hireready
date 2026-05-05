@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -115,5 +114,23 @@ public class ResumeService {
             //we catch it and throw oour cleaner excepton
         }
 
+    }
+    public ResumeResponse setResumeMain(Long resumeId, User user){
+        Resume resume = resumeRepository.findByIdAndUserId(resumeId, user.getId())
+                .orElseThrow(() -> new ResourceNotFoundException("Resume does not exist"));
+        resumeRepository.findByUserIdAndIsMainTrue(user.getId())
+                .ifPresent(existing -> {
+                    existing.setMain(false);
+                    resumeRepository.save(existing);
+                });
+        resume.setMain(true);
+        Resume saved = resumeRepository.save(resume);
+        return ResumeResponse.builder()
+                .id(saved.getId())
+                .fileName(saved.getFileName())
+                .content(saved.getContent())
+                .isMain(saved.isMain())
+                .createdAt(saved.getCreatedAt())
+                .build();
     }
 }

@@ -12,6 +12,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
@@ -19,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     // Defines the security rules for every HTTP request.
     // This is the main config — it sets up which endpoints are public,
@@ -29,6 +31,7 @@ public class SecurityConfig {
             // Disable CSRF — not needed for stateless JWT APIs.
             // CSRF protects session-based apps where the browser auto-sends cookies.
             // We don't use cookies or sessions so this is irrelevant.
+            .cors(cors -> cors.configurationSource(corsConfigurationSource))
             .csrf(csrf -> csrf.disable())
 
             // Define which endpoints are public and which require a valid JWT.

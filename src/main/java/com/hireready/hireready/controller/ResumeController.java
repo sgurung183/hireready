@@ -28,6 +28,15 @@ public class ResumeController {
         return ResponseEntity.ok(resumeResponse); //wrapping youre response so you can control the HTTP status code
     }
 
+    @PutMapping("/setMain/{id}")
+    public ResponseEntity<ResumeResponse> setMain(
+            @PathVariable Long id,
+            @AuthenticationPrincipal User currentUser
+    ){
+        ResumeResponse response = resumeService.setResumeMain(id, currentUser);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ResumeResponse> getResume(
         @PathVariable Long id,

@@ -5,20 +5,30 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.types.GenerateContentResponse;
 import com.hireready.hireready.dto.response.OptimizeResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 
 @Service
-public class GeminiProvider implements LlmProvider{
+public class GeminiProvider implements LlmProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(GeminiProvider.class);
+
+    @Value("${GOOGLE_API_KEY}")
+    private String apiKey;
 
     @Override
     public OptimizeResponse optimize(String resumeContent, String jobDescription) {
         String prompt = getPrompt(resumeContent, jobDescription);
 
-        // SDK reads GEMINI_API_KEY from environment variable automatically
-        try{
-            Client client = new Client();
+        log.info("Calling Gemini API with key prefix: {}...",
+                apiKey != null && apiKey.length() > 8 ? apiKey.substring(0, 8) : "MISSING_OR_SHORT");
+
+        try {
+            Client client = Client.builder().apiKey(apiKey).build();
 
             // send the prompt to Gemini — model, prompt, null (no extra config needed)
             GenerateContentResponse response = client.models.generateContent(
